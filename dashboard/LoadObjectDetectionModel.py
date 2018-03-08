@@ -1,3 +1,4 @@
+# AI stuff
 import numpy as np
 import os
 import six.moves.urllib as urllib
@@ -12,10 +13,18 @@ from PIL import Image
 import cv2
 from collections import Counter
 
+# Database stuff
+from ClientsDatabaseHanderl import *
+from Client import *
+from Result import *
+
 # This is needed since the notebook is stored in the object_detection folder.
 sys.path.append("/home/pfm/Documents/models/research/object_detection/")
 from utils import label_map_util
 from utils import visualization_utils as vis_util
+
+# Constant variables
+CLIENTS_PATH = "/home/pfm/Documents/diagnostics/"
 
 class LoadObjectDetectionModel(object):
 	# Constructor
@@ -115,11 +124,35 @@ class LoadObjectDetectionModel(object):
 								else:
 									print(frequency.get(key, 0))
 									results[key] += frequency.get(key, 0)
+						# Otherwise, remove them
+						else:
+							os.remove(image_path)
 		# Return results
 		return results
 
 if __name__ == "__main__":
-	pass
-# from LoadObjectDetectionModel import *
-# obj = LoadObjectDetectionModel()
-# results = obj.classifyFiles(["/home/pfm/Pictures/image.jpg"])
+	# Create a database instance
+	cdb = ClientsDatabaseHandler(user = "root", password = "root")
+	# Query all clients that require a status 1
+	result = cdb.readClientByStatus(status = 1)
+	# Create an object detection instance
+	obj = LoadObjectDetectionModel()
+	# Read files in the target folder
+	path_to_client = os.path.join(CLIENTS_PATH, result[0][1])
+	files = os.listdir(path_to_client)
+	# Create a list with the full paths to the images
+	image_paths = []
+	for file in files:
+		image_paths.append(os.path.join(path_to_client, file))
+	detectionResults = obj.classifyFiles(imagePaths = image_paths)
+	print(detectionResults)
+	# Create a result instance attached to the client
+	for key in detectionResults:
+		count = detectionResults.get(key, 0)
+		cdb.createResult(result = Result(client_id = result[0][1],
+																			microorganism = key,
+																			count = count))
+	# Update the client's status
+	cdb.updateClientStatus(client = Client(client_id = result[0][1],
+																					status = 2))
+

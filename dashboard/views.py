@@ -8,6 +8,7 @@ from .mController import *
 # Database
 from .ClientsDatabaseHandler import *
 from .Client import *
+from .Result import *
 # Utils
 from .utils import *
 
@@ -27,10 +28,10 @@ def index(request):
 			# Preprocess the folder
 			path_to_id = os.path.join(CLIENTS_PATH, client_id)
 			preprocess_folder(path_to_id)
-			# Run classifier in folder
-			# results = classify_files(path_to_id)
 			# Update this object's status
 			cdb.updateClientStatus(Client(client_id=int(client_id), status=1))
+			# Run classifier in folder
+			classify_files()
 			# Render page
 			return HttpResponse("asdffads")
 		if client_id != None and int(visualize) == 1:
@@ -67,7 +68,7 @@ def index(request):
 		for client in clients:
 			st = client["status"]
 			if st == 0:
-				client["status"] = "Diagnosed"
+				client["status"] = "Not diagnosed"
 			elif st == 1:
 				client["status"] = "Working"
 			elif st == 2:

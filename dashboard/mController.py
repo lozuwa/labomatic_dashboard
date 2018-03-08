@@ -1,13 +1,13 @@
 import os
 import sys
+import subprocess
 import cv2
 import numpy as np
-from . import views
-from . import LoadObjectDetectionModel as LoadObjDect
+# from . import LoadObjectDetectionModel as LoadObjDect
 from impy.preprocess import preprocessImage
 
 # Global variables
-obj = LoadObjDect.LoadObjectDetectionModel()
+# obj = LoadObjDect.LoadObjectDetectionModel()
 prep = preprocessImage()
 
 def allowed_files(path, files):
@@ -83,19 +83,14 @@ def preprocess_file(file):
 	# Remove file
 	os.remove(file)
 
-def classify_files(path):
+def classify_files():
 	"""
 	Args:
 		path: A string that contains the path to a preprocessed folder of images.
 	Returns:
 		None 
 	"""
-	# Read files in folder
-	files = os.listdir(path)
-	# Create a list of full paths to the files
-	for i in range(files):
-		files[i] = os.path.join(path, files[i])
-	obj.classifyFiles(imagePaths = files)
+	p = subprocess.Popen(["python", "LoadObjectDetectionModel.py"], stdout=subprocess.PIPE)
 
 # if __name__ == "__main__":
 # 	r = classify_files("/home/pfm/Documents/pfm/web/backend/LabomaticModels/media/Ascaris lumbricoides_17_6_12_589278.jpg", 4, 3)
