@@ -30,15 +30,19 @@ def index(request):
 			preprocess_folder(path_to_id)
 			# Update this object's status
 			cdb.updateClientStatus(Client(client_id=int(client_id), status=1))
+			print("Status completed")
 			# Run classifier in folder
 			classify_files()
 			# Render page
-			return HttpResponse("asdffads")
+			return HttpResponseRedirect("/")
 		if client_id != None and int(visualize) == 1:
 			# Query the results
-			# TODO: Replace hardcoded values by db queries
+			# TODO: organize how to structure the response form 
+			# results. There are multiple microorganism and of course multiple
+			# counts.
+			listResults = cdb.readResultsByID(client_id = client_id)
+			result = listResults[0]
 			context = {"rows": [i for i in range(2)],
-								"cols": [i for i in range(4)],
 								"summary": [{"index": i,
 														"parasite":"Ascaris",
 														"quantity":"3"} for i in range(1)]}
@@ -49,8 +53,8 @@ def index(request):
 		# Get folders from path
 		folders = os.listdir(CLIENTS_PATH)
 		# Query clients from db
-		clients = cdb.readClients()
-		ids = extract_ids(clients)
+		list_clients = cdb.readClients()
+		ids = extract_ids(list_clients)
 		# Compare clients and folders
 		missing_folders = set(folders).difference(set(ids))
 		# If there are missing folders, then add 
@@ -58,23 +62,14 @@ def index(request):
 		for folder in missing_folders:
 			cdb.createClient(Client(client_id = folder, status = 0))
 		# Query clients from db
-		clients = cdb.readClients()
-		clients_formatted = format_ids_status(clients)
+		list_clients = cdb.readClients()
 		# Format clients inside a dictionary
 		clients = [{"index": index,
-								"id": key,
-								"status": clients_formatted.get(key)}
-							for index, key in enumerate(clients_formatted)]
-		for client in clients:
-			st = client["status"]
-			if st == 0:
-				client["status"] = "Not diagnosed"
-			elif st == 1:
-				client["status"] = "Working"
-			elif st == 2:
-				client["status"] = "Diagnosed"
-			else:
-				pass
+								"id": client.property_client_id,
+								"status": "Not diagnosed" if client.property_status == 0 else \
+													"Working" if client.property_status == 1 else \
+													"Diagnosed"}
+							for index, client in enumerate(list_clients)]
 		context = {"clients": clients}
 		return render(request,
 								"dashboard/clients_table.html",

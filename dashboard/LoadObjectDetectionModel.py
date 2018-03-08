@@ -14,14 +14,14 @@ import cv2
 from collections import Counter
 
 # Database stuff
-from ClientsDatabaseHanderl import *
+from ClientsDatabaseHandler import *
 from Client import *
 from Result import *
 
 # This is needed since the notebook is stored in the object_detection folder.
 sys.path.append("/home/pfm/Documents/models/research/object_detection/")
-from utils import label_map_util
-from utils import visualization_utils as vis_util
+# from utils import label_map_util
+# from utils import visualization_utils as vis_util
 
 # Constant variables
 CLIENTS_PATH = "/home/pfm/Documents/diagnostics/"
@@ -35,10 +35,10 @@ class LoadObjectDetectionModel(object):
 		# List of the strings that is used to add correct label for each box.
 		self.PATH_TO_LABELS = "dashboard/static/assets/label_map.pbtxt"
 		# Number of classes
-		self.NUM_CLASSES = 1
+		self.NUM_CLASSES = 3
 		# Load graph and labels
 		self.loadGraph()
-		self.loadLabels()
+		#self.loadLabels()
 
 	def loadGraph(self):
 		self.detection_graph = tf.Graph()
@@ -92,15 +92,15 @@ class LoadObjectDetectionModel(object):
 							[detection_boxes, detection_scores, detection_classes, num_detections],
 							feed_dict={image_tensor: image_np_expanded})
 					if max(np.squeeze(scores)) > 0.10:
-						# Visualization of the results of a detection.
-						vis_util.visualize_boxes_and_labels_on_image_array(image_np,
-																		np.squeeze(boxes),
-																		np.squeeze(classes).astype(np.int32),
-																		np.squeeze(scores),
-																		self.category_index,
-																		min_score_thresh=.1,
-																		use_normalized_coordinates=True,
-																		line_thickness=2)
+						# # Visualization of the results of a detection.
+						# vis_util.visualize_boxes_and_labels_on_image_array(image_np,
+						# 												np.squeeze(boxes),
+						# 												np.squeeze(classes).astype(np.int32),
+						# 												np.squeeze(scores),
+						# 												self.category_index,
+						# 												min_score_thresh=.1,
+						# 												use_normalized_coordinates=True,
+						# 												line_thickness=2)
 						# Save figures that contain something
 						if (np.max(np.squeeze(scores)) > 0.10):
 							# Save the file
@@ -134,11 +134,14 @@ if __name__ == "__main__":
 	# Create a database instance
 	cdb = ClientsDatabaseHandler(user = "root", password = "root")
 	# Query all clients that require a status 1
-	result = cdb.readClientByStatus(status = 1)
+	list_clients = cdb.readClientsByStatus(status = 1)
+	result = list_clients[0]
+	client_id = str(result.property_client_id)
+	client_status = result.property_status
 	# Create an object detection instance
 	obj = LoadObjectDetectionModel()
 	# Read files in the target folder
-	path_to_client = os.path.join(CLIENTS_PATH, result[0][1])
+	path_to_client = os.path.join(CLIENTS_PATH, client_id)
 	files = os.listdir(path_to_client)
 	# Create a list with the full paths to the images
 	image_paths = []
@@ -149,10 +152,10 @@ if __name__ == "__main__":
 	# Create a result instance attached to the client
 	for key in detectionResults:
 		count = detectionResults.get(key, 0)
-		cdb.createResult(result = Result(client_id = result[0][1],
+		cdb.createResult(result = Result(client_id = client,
 																			microorganism = key,
 																			count = count))
 	# Update the client's status
-	cdb.updateClientStatus(client = Client(client_id = result[0][1],
+	cdb.updateClientStatus(client = Client(client_id = client_id,
 																					status = 2))
 

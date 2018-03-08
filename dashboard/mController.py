@@ -90,7 +90,9 @@ def classify_files():
 	Returns:
 		None 
 	"""
-	p = subprocess.Popen(["python", "LoadObjectDetectionModel.py"], stdout=subprocess.PIPE)
+	file_path = os.path.join(os.getcwd(),
+													"dashboard/LoadObjectDetectionModel.py")
+	p = subprocess.Popen(["python", file_path], stdout=subprocess.PIPE)
 
 # if __name__ == "__main__":
 # 	r = classify_files("/home/pfm/Documents/pfm/web/backend/LabomaticModels/media/Ascaris lumbricoides_17_6_12_589278.jpg", 4, 3)

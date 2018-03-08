@@ -1,5 +1,16 @@
 # Mysql
 import pymysql
+# Local classes
+# TODO: too verbose, it might be better to start the Popen
+# process as a python -m package.module to avoid this ugly code.
+try:
+	from .Client import *
+except:
+	from Client import *
+try:
+	from .Result import *
+except:
+	from Result import *
 
 class ClientsDatabaseHandler(object):
 	"""docstring for ClientsDatabaseHandler"""
@@ -49,7 +60,7 @@ class ClientsDatabaseHandler(object):
 																					self.KEY_STATUS_CLIENTS)\
 					+	" VALUES({}, {});".format(client.property_client_id,
 																				client.property_status)
-		print("SQL: ", sql)
+		#print("SQL: ", sql)
 		# Execute sql
 		try:
 			# Execute sql
@@ -63,6 +74,8 @@ class ClientsDatabaseHandler(object):
 		db.close()
 
 	def readClients(self):
+		# Local variables
+		listClients = []
 		# Make a connection to the db
 		db = pymysql.connect(self.connection,
 												self.user,
@@ -71,20 +84,26 @@ class ClientsDatabaseHandler(object):
 		cursor = db.cursor()
 		# Prepare sql
 		sql = "SELECT * FROM {};".format(self.CLIENTS_TABLE)
-		print("SQL: ", sql)
+		#print("SQL: ", sql)
 		try:
 			# Execute sql
 			cursor.execute(sql)
 			# Fetch all rows in a list of lists
 			results = cursor.fetchall()
+			# Append to list of Clients
+			for result in results:
+				listClients.append(Client(client_id = result[1],
+																	status = result[2]))
 		except:
 			print("Unable to fetch data")
 		# Close db connection
 		db.close()
 		# Return
-		return results
+		return listClients
 
 	def readClientByID(self, client_id = None):
+		# Loca variables
+		listClients = []
 		# Assertions
 		if client_id == None:
 			raise Exception("Client ID cannot be empty")
@@ -97,20 +116,26 @@ class ClientsDatabaseHandler(object):
 		# Prepare sql
 		sql = "SELECT * FROM {}".format(self.CLIENTS_TABLE)\
 						+ " WHERE {}={};".format(self.KEY_ID_CLIENTS, client_id)
-		print("SQL: ", sql)
+		#print("SQL: ", sql)
 		try:
 			# Execute sql
 			cursor.execute(sql)
 			# Fetch all rows in a list of lists
 			results = cursor.fetchall()
+			# Append results to a list of Clients
+			for result in results:
+				listClients.append(Client(client_id = result[1],
+																	status = result[2]))
 		except:
 			print("Unable to fetch data")
 		# Close db connection
 		db.close()
 		# Return
-		return results
+		return listClients
 
-	def readClientsByStatus(self, status = None):
+	def readClientByStatus(self, status = None):
+		# Local variables
+		listClients = []
 		# Assertions
 		if status == None:
 			raise Exception("Status cannot be empty")
@@ -124,12 +149,16 @@ class ClientsDatabaseHandler(object):
 		sql = "SELECT * FROM {}".format(self.CLIENTS_TABLE)\
 						+ " WHERE {}={};".format(self.KEY_STATUS_CLIENTS,
 																		status)
-		print("SQL: ", sql)
+		#print("SQL: ", sql)
 		try:
 			# Execute sql
 			cursor.execute(sql)
 			# Fetch all rows in a list of lists
 			results = cursor.fetchall()
+			# Append results to list of Clients
+			for result in results:
+				listClients.append(Client(client_id = result[1],
+																	status = result[2]))
 		except:
 			print("Unable to fetch data")
 		# Close db connection
@@ -194,99 +223,125 @@ class ClientsDatabaseHandler(object):
 		# self.KEY_MICROORGANISM_RESULTS = "microorganism"
 		# self.KEY_COUNT_RESULTS = "count"
 		
-		# CRUD operations for results
-		def createResult(self, result = None):
-			# Assertions
-			if result == None:
-				raise Exception("Result cannot be empty")
-			# Make a connection to the db
-			db = pymysql.connect(self.connection,
-													self.user,
-													self.password,
-													self.databaseName)
-			cursor = db.cursor()
-			# Prepare sql
-			sql = "INSERT INTO {}({}, {}, {})".format(self.RESULTS_TABLE,
-																								self.KEY_ID_RESULTS,
-																								self.KEY_MICROORGANISM_RESULTS,
-																								self.KEY_COUNT_RESULTS)\
-						+ " VALUES({},{},{});".format(result.property_client_id,
-																				result.property_microorganism,
-																				result.property_count)
-			try:
-				# Execute sql command
-				cursor.execute(sql)
-				# Commit changes to db
-				db.commit()
-			except:
-				# Rollback in case there is an error
-				db.Rollback()
-			# Close db connection
-			db.close()
+	# CRUD operations for results
+	def createResult(self, result = None):
+		# Assertions
+		if result == None:
+			raise Exception("Result cannot be empty")
+		# Make a connection to the db
+		db = pymysql.connect(self.connection,
+												self.user,
+												self.password,
+												self.databaseName)
+		cursor = db.cursor()	
+		# Prepare sql
+		sql = "INSERT INTO {}({}, {}, {})".format(self.RESULTS_TABLE,
+																							self.KEY_ID_RESULTS,
+																							self.KEY_MICROORGANISM_RESULTS,
+																							self.KEY_COUNT_RESULTS)\
+					+ " VALUES({},{},{});".format(result.property_client_id,
+																			result.property_microorganism,
+																			result.property_count)
+		try:
+			# Execute sql command
+			cursor.execute(sql)
+			# Commit changes to db
+			db.commit()
+		except:
+			# Rollback in case there is an error
+			db.Rollback()
+		# Close db connection
+		db.close()
 
-		def readResults(self):
-			# Make a connection to the db
-			db = pymysql.connect(self.connection,
-													self.user,
-													self.password,
-													self.databaseName)
-			cursor = db.cursor()
-			sql = "SELECT * FROM {};".format(self.RESULTS_TABLE)
-			try:
-				cursor.execute(sql)
-				results = cursor.fetchall()
-			except:
-				print("Unable to fetch data")
-			db.close()
-			return results
+	def readResults(self):
+		# Local variables
+		listResults = []
+		# Make a connection to the db
+		db = pymysql.connect(self.connection,
+												self.user,
+												self.password,
+												self.databaseName)
+		# Create a cursor
+		cursor = db.cursor()
+		# SQL query
+		sql = "SELECT * FROM {};".format(self.RESULTS_TABLE)
+		try:
+			# Execute sql
+			cursor.execute(sql)
+			# Fetch results
+			results = cursor.fetchall()
+			# Append results to a list of Results
+			for result in results:
+				listResults.append(Result(client_id = result[1],
+																	microorganism = result[2],
+																	count = result[3]))
+		except:
+			print("Unable to fetch data")
+		# Close database
+		db.close()
+		# Return results
+		return listResults
 
-		def readResultByID(self, client_id = None):
-			# Assertions
-			if client_id == None:
-				raise Exception("Client id cannot be empty")
-			# Make a connection to the db
-			db = pymysql.connect(self.connection,
-													self.user,
-													self.password,
-													self.databaseName)
-			cursor = db.cursor()
-			sql = "SELECT * FROM {}".format(self.RESULTS_TABLE)\
-						+ " WHERE {}={};".format(self.KEY_ID_RESULTS, client_id)
-			try:
-				cursor.execute(sql)
-				results = cursor.fetchall()
-			except:
-				print("Unable to fetch data")
-			db.close()
-			return results
+	def readResultByID(self, client_id = None):
+		# Local variables
+		listResults = []
+		# Assertions
+		if client_id == None:
+			raise Exception("Client id cannot be empty")
+		# Make a connection to the db
+		db = pymysql.connect(self.connection,
+												self.user,
+												self.password,
+												self.databaseName)
+		# Create a cursor
+		cursor = db.cursor()
+		# Create query
+		sql = "SELECT * FROM {}".format(self.RESULTS_TABLE)\
+					+ " WHERE {}={};".format(self.KEY_ID_RESULTS, client_id)
+		try:
+			# Execute sql
+			cursor.execute(sql)
+			# Fetch results
+			results = cursor.fetchall()
+			# Append results to a list of results
+			for result in results:
+				listResults.append(Result(client_id = result[1],
+																	microorganism = result[2],
+																	count = result[3]))
+		except:
+			print("Unable to fetch data")
+		# Close connection to database
+		db.close()
+		# Return results
+		return listResults
 
-		def updateResult(self):
-			# Update does not make sense
-			return None
+	def updateResult(self):
+		# Update does not make sense
+		return None
 
-		def deleteResultsByID(self, client_id = None):
-			# Assertions
-			if client_id == None:
-				raise Exception("Client id cannot be empty")
-			# Make a connection to the db
-			db = pymysql.connect(self.connection,
-													self.user,
-													self.password,
-													self.databaseName)
-			cursor = db.cursor()
-			# Prepare sql
-			sql = "DELETE FROM {}".format(self.RESULTS_TABLE)\
-						+ " WHERE {}={};".format(self.KEY_ID_RESULTS, client_id)
-			try:
-				# Execute sql command
-				cursor.execute(sql)
-				# Commit changes to db
-				db.commit()
-			except:
-				# Rollback in case there is an error
-				db.Rollback()
-			# Close db connection
-			db.close()
+	def deleteResultsByID(self, client_id = None):
+		# Assertions
+		if client_id == None:
+			raise Exception("Client id cannot be empty")
+		# Make a connection to the db
+		db = pymysql.connect(self.connection,
+												self.user,
+												self.password,
+												self.databaseName)
+		cursor = db.cursor()
+		# Prepare sql
+		sql = "DELETE FROM {}".format(self.RESULTS_TABLE)\
+					+ " WHERE {}={};".format(self.KEY_ID_RESULTS, client_id)
+		try:
+			# Execute sql command
+			cursor.execute(sql)
+			# Commit changes to db
+			db.commit()
+		except:
+			# Rollback in case there is an error
+			db.Rollback()
+		# Close db connection
+		db.close()
 
 if __name__ == "__main__":
 	pass

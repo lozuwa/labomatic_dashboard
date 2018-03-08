@@ -1,5 +1,13 @@
 item {
         id: 1,
-        name: 'Koch'
+        name: 'Ascaris lumbricoides'
+}
+item {
+	id: 2,
+	name: 'Entamoeba coli'
+}
+item {
+	id: 3,
+	name: 'Giardia lamblia'
 }
 
