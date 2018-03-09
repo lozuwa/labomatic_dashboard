@@ -110,7 +110,7 @@ class LoadObjectDetectionModel(object):
 						dir_, folder = os.path.split(dir_)
 						# Save image at new path
 						new_image_path = os.path.join(os.getcwd(), "dashboard",\
-																				"media", "dashboard",\
+																				"static", "diagnosis",\
 																				folder, filename)
 						im.save(new_image_path)
 						# Append the results
@@ -146,7 +146,7 @@ if __name__ == "__main__":
 	client_status = result.property_status
 	# Create folder at media
 	create_folder(os.path.join(os.getcwd(), "dashboard", \
-														"media", "dashboard", \
+														"static", "diagnosis", \
 														client_id))
 	# Create an object detection instance
 	obj = LoadObjectDetectionModel()

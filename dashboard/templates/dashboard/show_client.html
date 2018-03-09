@@ -33,16 +33,15 @@
     </table>
   </div>
 	<h3>Images</h3>
-  <img src="/media/dashboard/images/sample380_2017_12_01_13_18_34381.jpg" alt="Image" style="width:100%">
-  <!-- <img src="/static/dashboard/images/ascaris.jpg" alt="Avatar" style="width:100%"> -->
-	<!-- {% for each in images %}
+  <!-- <img src="/static/diagnosis/6729216/sample380_2017_12_01_13_18_34381.jpg" alt="Image" style="width:100%"> -->
+	{% for each in images %}
 		<div class="row">
 			<div class="card col-sm-3">
-        <img src="/media/sample380_2017_12_01_13_18_34381.jpg" alt="Avatar" style="width:100%">
+        <img src="{{ each.path }}" alt="Avatar" style="width:100%">
 			  <div class="container">
 			    <h4><b>Parasite</b></h4> 
 			  </div>
 			</div>
 		</div>
-	{% endfor %} -->
+	{% endfor %}
 {% endblock %}

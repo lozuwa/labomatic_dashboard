@@ -47,12 +47,12 @@ def index(request):
 												"microorganism": result.property_microorganism,
 												"count": result.property_count})
 			# Parse images to display
-			path_client = os.path.join(os.getcwd(), "dashboard", \
-																"media", "dashboard", \
-																client_id)
-			images = [{"path": os.path.join(path_client, each)} for each in \
-														os.listdir(path_client)\
-														if os.path.isfile(os.path.join(path_client, each))]
+			path_client = os.path.join("dashboard", "static", \
+															"diagnosis", client_id)
+			images = [{"path": os.path.join("static", "diagnosis", client_id, each)} \
+													for each in os.listdir(path_client) \
+													if os.path.isfile(os.path.join(path_client, each))]
+			print(images)
 			# Add parameters to context hashmap
 			context = {"summary": summary,
 									"images": images}
