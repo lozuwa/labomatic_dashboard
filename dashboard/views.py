@@ -15,6 +15,7 @@ from .utils import *
 # Constant global variables
 cdb = ClientsDatabaseHandler(user="root", password="root")
 CLIENTS_PATH = "/home/pfm/Documents/diagnostics/"
+REDIRECT_PATH = "dashboard/media/"
 
 def index(request):
 	if request.method == "POST":
@@ -46,8 +47,10 @@ def index(request):
 												"microorganism": result.property_microorganism,
 												"count": result.property_count})
 			# Parse images to display
-			path_client = os.path.join(CLIENTS_PATH, client_id)
-			images = [{"path": os.path.join(path_client, each)} for each in\
+			path_client = os.path.join(os.getcwd(), "dashboard", \
+																"media", "dashboard", \
+																client_id)
+			images = [{"path": os.path.join(path_client, each)} for each in \
 														os.listdir(path_client)\
 														if os.path.isfile(os.path.join(path_client, each))]
 			# Add parameters to context hashmap

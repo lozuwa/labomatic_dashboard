@@ -9,4 +9,13 @@ urlpatterns = [
   path("", views.index, name="index"),
   path("<int:id>", views.index, name="index"),
   path("refresh", views.refresh, name="refresh") 
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+] 
+
+if settings.DEBUG:
+	# Static files
+	urlpatterns += static(settings.STATIC_URL,\
+												document_root=settings.STATIC_ROOT)
+	# Media files
+	urlpatterns += static(settings.MEDIA_URL,\
+												document_root=settings.MEDIA_ROOT)
+

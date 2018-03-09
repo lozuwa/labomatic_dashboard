@@ -18,6 +18,7 @@ from ClientsDatabaseHandler import *
 from Client import *
 from Result import *
 from Microorganism import *
+from utils import *
 
 # This is needed since the notebook is stored in the object_detection folder.
 sys.path.append("/home/pfm/Documents/models/research/object_detection/utils/")
@@ -25,9 +26,6 @@ import label_map_util
 import visualization_utils as vis_util
 # from utils import label_map_util
 # from utils import visualization_utils as vis_util
-
-# Constant variables
-CLIENTS_PATH = "/home/pfm/Documents/diagnostics/"
 
 class LoadObjectDetectionModel(object):
 	# Constructor
@@ -96,7 +94,7 @@ class LoadObjectDetectionModel(object):
 							[detection_boxes, detection_scores, detection_classes, num_detections],
 							feed_dict={image_tensor: image_np_expanded})
 					if max(np.squeeze(scores)) > thresholdScore:
-						# # Visualization of the results of a detection.
+						# Visualization of a detection's results.
 						vis_util.visualize_boxes_and_labels_on_image_array(image_np,
 																		np.squeeze(boxes),
 																		np.squeeze(classes).astype(np.int32),
@@ -105,9 +103,16 @@ class LoadObjectDetectionModel(object):
 																		min_score_thresh=thresholdScore,
 																		use_normalized_coordinates=True,
 																		line_thickness=4)
-						# Save the file
+						# Save file
 						im = Image.fromarray(np.uint8(image_np))
-						im.save(image_path)
+						# Extract name and folder
+						dir_, filename = os.path.split(image_path)
+						dir_, folder = os.path.split(dir_)
+						# Save image at new path
+						new_image_path = os.path.join(os.getcwd(), "dashboard",\
+																				"media", "dashboard",\
+																				folder, filename)
+						im.save(new_image_path)
 						# Append the results
 						# Squeeze vectors to one dimension
 						scores = np.squeeze(scores)
@@ -126,10 +131,8 @@ class LoadObjectDetectionModel(object):
 							else:
 								print(frequency.get(key, 0))
 								results[key] += frequency.get(key, 0)
-					else:
-						print("Remove: " + image_path)
-						# Otherwise, remove them
-						os.remove(image_path)
+					# Remove all files
+					os.remove(image_path)
 		# Return results
 		return results
 
@@ -141,6 +144,10 @@ if __name__ == "__main__":
 	result = list_clients[0]
 	client_id = str(result.property_client_id)
 	client_status = result.property_status
+	# Create folder at media
+	create_folder(os.path.join(os.getcwd(), "dashboard", \
+														"media", "dashboard", \
+														client_id))
 	# Create an object detection instance
 	obj = LoadObjectDetectionModel()
 	# Read files in the target folder
