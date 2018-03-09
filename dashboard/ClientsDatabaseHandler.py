@@ -11,6 +11,10 @@ try:
 	from .Result import *
 except:
 	from Result import *
+try:
+	from .Microorganism import *
+except:
+	from Microorganism import *
 
 class ClientsDatabaseHandler(object):
 	"""docstring for ClientsDatabaseHandler"""
@@ -42,6 +46,11 @@ class ClientsDatabaseHandler(object):
 		self.KEY_ID_RESULTS = "client_id"
 		self.KEY_MICROORGANISM_RESULTS = "microorganism"
 		self.KEY_COUNT_RESULTS = "count"
+		# Static table
+		# microorganisms
+		self.MICROORGANISMS_TABLE = "microorganisms"
+		self.KEY_ID_MICROORGANISMS = "id"
+		self.KEY_NAME_MICROORGANISMS = "name"
 
 	# CRUD operations for clients table
 	def createClient(self, client = None):
@@ -164,7 +173,7 @@ class ClientsDatabaseHandler(object):
 		# Close db connection
 		db.close()
 		# Return
-		return results
+		return listClients
 
 	def updateClientStatus(self, client = None):
 		# Assertions
@@ -189,7 +198,7 @@ class ClientsDatabaseHandler(object):
 			db.commit()
 		except:
 			# Rollback in case there is an error
-			db.Rollback()
+			db.rollback()
 		# Close db connection
 		db.close()
 
@@ -213,15 +222,15 @@ class ClientsDatabaseHandler(object):
 			db.commit()
 		except:
 			# Rollback in case there is an error
-			db.Rollback()
+			db.rollback()
 		# Close db connection
 		db.close()
 
-		# results
-		# self.RESULTS_TABLE = "results"
-		# self.KEY_ID_RESULTS = "client_id"
-		# self.KEY_MICROORGANISM_RESULTS = "microorganism"
-		# self.KEY_COUNT_RESULTS = "count"
+	# results
+	# self.RESULTS_TABLE = "results"
+	# self.KEY_ID_RESULTS = "client_id"
+	# self.KEY_MICROORGANISM_RESULTS = "microorganism"
+	# self.KEY_COUNT_RESULTS = "count"
 		
 	# CRUD operations for results
 	def createResult(self, result = None):
@@ -239,17 +248,18 @@ class ClientsDatabaseHandler(object):
 																							self.KEY_ID_RESULTS,
 																							self.KEY_MICROORGANISM_RESULTS,
 																							self.KEY_COUNT_RESULTS)\
-					+ " VALUES({},{},{});".format(result.property_client_id,
+					+ " VALUES({},'{}',{});".format(result.property_client_id,
 																			result.property_microorganism,
 																			result.property_count)
+		print(sql)
 		try:
 			# Execute sql command
 			cursor.execute(sql)
 			# Commit changes to db
 			db.commit()
-		except:
+		except Exception as e:
 			# Rollback in case there is an error
-			db.Rollback()
+			db.rollback()
 		# Close db connection
 		db.close()
 
@@ -315,6 +325,39 @@ class ClientsDatabaseHandler(object):
 		# Return results
 		return listResults
 
+	def readResultByIDAndMic(self, client_id, mic):
+		# Local variables
+		listResults = []
+		# Make a connection to db
+		db = pymysql.connect(self.connection,
+												self.user,
+												self.password,
+												self.databaseName)
+		# Create a cursor
+		cursor = db.cursor()
+		# Create query
+		sql = "SELECT * FROM {}".format(self.RESULTS_TABLE)\
+					+ " WHERE {}={} and {}={};".format(self.KEY_ID_RESULTS,
+																						client_id,
+																						self.KEY_MICROORGANISM_RESULTS,
+																						mic)
+		try:
+			# Execute sql
+			cursor.execute(sql)
+			# Fetch results
+			results = cursor.fetchall()
+			# Append results to a list of Results
+			for result in results:
+				listResults.append(Result(client_id = result.property_client_id,
+																	microorganism = result.property_microorganism,
+																	count = result.property_count))
+		except:
+			print("Unable to fetch values")
+		# Close db
+		db.close()
+		# Return results
+		return listResults
+
 	def updateResult(self):
 		# Update does not make sense
 		return None
@@ -339,12 +382,53 @@ class ClientsDatabaseHandler(object):
 			db.commit()
 		except:
 			# Rollback in case there is an error
-			db.Rollback()
+			db.rollback()
 		# Close db connection
 		db.close()
 
+	# CRUD operations for the microorganisms table
+	def createMicroorganism(self):
+		# Does not make sense, this will be a static table
+		pass
+
+	def readMicroorganismByID(self, id_):
+		# Local variable
+		mic = Microorganism()
+		# Make a connection to the db
+		db = pymysql.connect(self.connection,
+												self.user,
+												self.password,
+												self.databaseName)
+		cursor = db.cursor()
+		# Prepare sql
+		sql = "SELECT * FROM {}".format(self.MICROORGANISMS_TABLE)\
+					+ " WHERE {}={};".format(self.KEY_ID_MICROORGANISMS, id_)
+		try:
+			# Execute sql command
+			cursor.execute(sql)
+			# Fetch results
+			results = cursor.fetchall()[0]
+			# Load results into class
+			mic.property_id = results[0]
+			mic.property_name = results[1]
+		except:
+			print("Unable to fetch results")
+		# Close db connection
+		db.close()
+		# Return result
+		return mic
+
+	def updateMicroorganism(self):
+		# This does not make sense
+		pass
+
+	def deleteMicroorganism(self):
+		# There is no point in deleting a field
+		pass
+
 if __name__ == "__main__":
 	pass
+
 # from ClientsDatabaseHandler import *
 # from Client import Client
 # cdb = ClientsDatabaseHandler(user = "root", password = "root")

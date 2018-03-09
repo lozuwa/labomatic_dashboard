@@ -17,9 +17,12 @@ from collections import Counter
 from ClientsDatabaseHandler import *
 from Client import *
 from Result import *
+from Microorganism import *
 
 # This is needed since the notebook is stored in the object_detection folder.
-sys.path.append("/home/pfm/Documents/models/research/object_detection/")
+sys.path.append("/home/pfm/Documents/models/research/object_detection/utils/")
+import label_map_util
+import visualization_utils as vis_util
 # from utils import label_map_util
 # from utils import visualization_utils as vis_util
 
@@ -30,15 +33,14 @@ class LoadObjectDetectionModel(object):
 	# Constructor
 	def __init__(self):
 		super(LoadObjectDetectionModel, self).__init__()
-		# Path to frozen detection graph. 
+		# Path to graph and labels
 		self.PATH_TO_CKPT = "dashboard/static/assets/frozen_inference_graph.pb"
-		# List of the strings that is used to add correct label for each box.
 		self.PATH_TO_LABELS = "dashboard/static/assets/label_map.pbtxt"
 		# Number of classes
 		self.NUM_CLASSES = 3
 		# Load graph and labels
 		self.loadGraph()
-		#self.loadLabels()
+		self.loadLabels()
 
 	def loadGraph(self):
 		self.detection_graph = tf.Graph()
@@ -61,10 +63,12 @@ class LoadObjectDetectionModel(object):
 		return np.array(image.getdata()).reshape(
 				(im_height, im_width, 3)).astype(np.uint8)
 
-	def classifyFiles(self, imagePaths = None):
+	def classifyFiles(self, imagePaths = None, thresholdScore = None):
 		# Assertions
 		if imagePaths == None:
 			raise Exception("Image paths cannot be empty")
+		if thresholdScore == None:
+			thresholdScore = 0.8
 		# Local variables
 		results = {}
 		# Actual detection
@@ -80,7 +84,7 @@ class LoadObjectDetectionModel(object):
 				detection_classes = self.detection_graph.get_tensor_by_name("detection_classes:0")
 				num_detections = self.detection_graph.get_tensor_by_name("num_detections:0")
 				for image_path in imagePaths[:]:
-					#print(image_path)
+					print(image_path)
 					image = Image.open(image_path)
 					# the array based representation of the image will be used later in order to prepare the
 					# result image with boxes and labels on it.
@@ -91,42 +95,41 @@ class LoadObjectDetectionModel(object):
 					(boxes, scores, classes, num) = sess.run(
 							[detection_boxes, detection_scores, detection_classes, num_detections],
 							feed_dict={image_tensor: image_np_expanded})
-					if max(np.squeeze(scores)) > 0.10:
+					if max(np.squeeze(scores)) > thresholdScore:
 						# # Visualization of the results of a detection.
-						# vis_util.visualize_boxes_and_labels_on_image_array(image_np,
-						# 												np.squeeze(boxes),
-						# 												np.squeeze(classes).astype(np.int32),
-						# 												np.squeeze(scores),
-						# 												self.category_index,
-						# 												min_score_thresh=.1,
-						# 												use_normalized_coordinates=True,
-						# 												line_thickness=2)
-						# Save figures that contain something
-						if (np.max(np.squeeze(scores)) > 0.10):
-							# Save the file
-							im = Image.fromarray(np.uint8(image_np))
-							# im.save(image_path)
-							# Append the results
-							# Squeeze vectors to one dimension
-							scores = np.squeeze(scores)
-							classes = np.squeeze(classes)
-							# Find the indexes of scores above threshold
-							indexes = np.where(scores > 0.1)[0]
-							# Count each class' frequency
-							frequency = Counter(classes[indexes])
-							# Append
-							keys = [i for i in frequency.keys()]
-							values = [i for i in frequency.values()]
-							for key in keys:
-								getKey = results.get(key, None)
-								if getKey == None:
-									results[key] = frequency.get(key, 0)
-								else:
-									print(frequency.get(key, 0))
-									results[key] += frequency.get(key, 0)
+						vis_util.visualize_boxes_and_labels_on_image_array(image_np,
+																		np.squeeze(boxes),
+																		np.squeeze(classes).astype(np.int32),
+																		np.squeeze(scores),
+																		self.category_index,
+																		min_score_thresh=thresholdScore,
+																		use_normalized_coordinates=True,
+																		line_thickness=4)
+						# Save the file
+						im = Image.fromarray(np.uint8(image_np))
+						im.save(image_path)
+						# Append the results
+						# Squeeze vectors to one dimension
+						scores = np.squeeze(scores)
+						classes = np.squeeze(classes)
+						# Find the indexes of scores above threshold
+						indexes = np.where(scores > thresholdScore)[0]
+						# Count each class' frequency
+						frequency = Counter(classes[indexes])
+						# Append
+						keys = [i for i in frequency.keys()]
+						values = [i for i in frequency.values()]
+						for key in keys:
+							getKey = results.get(key, None)
+							if getKey == None:
+								results[key] = frequency.get(key, 0)
+							else:
+								print(frequency.get(key, 0))
+								results[key] += frequency.get(key, 0)
+					else:
+						print("Remove: " + image_path)
 						# Otherwise, remove them
-						else:
-							os.remove(image_path)
+						os.remove(image_path)
 		# Return results
 		return results
 
@@ -134,7 +137,7 @@ if __name__ == "__main__":
 	# Create a database instance
 	cdb = ClientsDatabaseHandler(user = "root", password = "root")
 	# Query all clients that require a status 1
-	list_clients = cdb.readClientsByStatus(status = 1)
+	list_clients = cdb.readClientByStatus(status = 1)
 	result = list_clients[0]
 	client_id = str(result.property_client_id)
 	client_status = result.property_status
@@ -151,9 +154,10 @@ if __name__ == "__main__":
 	print(detectionResults)
 	# Create a result instance attached to the client
 	for key in detectionResults:
+		mic = cdb.readMicroorganismByID(id_ = key)
 		count = detectionResults.get(key, 0)
-		cdb.createResult(result = Result(client_id = client,
-																			microorganism = key,
+		cdb.createResult(result = Result(client_id = client_id,
+																			microorganism = mic.property_name,
 																			count = count))
 	# Update the client's status
 	cdb.updateClientStatus(client = Client(client_id = client_id,

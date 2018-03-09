@@ -36,16 +36,23 @@ def index(request):
 			# Render page
 			return HttpResponseRedirect("/")
 		if client_id != None and int(visualize) == 1:
+			# Parse quantitative results
 			# Query the results
-			# TODO: organize how to structure the response form 
-			# results. There are multiple microorganism and of course multiple
-			# counts.
-			listResults = cdb.readResultsByID(client_id = client_id)
-			result = listResults[0]
-			context = {"rows": [i for i in range(2)],
-								"summary": [{"index": i,
-														"parasite":"Ascaris",
-														"quantity":"3"} for i in range(1)]}
+			listResults = cdb.readResultByID(client_id = client_id)
+			# Convert results to a list of hash maps
+			summary = []
+			for index, result in enumerate(listResults):
+				summary.append({"index": index,
+												"microorganism": result.property_microorganism,
+												"count": result.property_count})
+			# Parse images to display
+			path_client = os.path.join(CLIENTS_PATH, client_id)
+			images = [{"path": os.path.join(path_client, each)} for each in\
+														os.listdir(path_client)\
+														if os.path.isfile(os.path.join(path_client, each))]
+			# Add parameters to context hashmap
+			context = {"summary": summary,
+									"images": images}
 			return render(request,
 									"dashboard/show_client.html",
 									context)
@@ -77,3 +84,6 @@ def index(request):
 
 def refresh(request):
 	return HttpResponseRedirect("/")
+
+# from ClientsDatabaseHandler import *
+# cdb = ClientsDatabaseHandler(user = "root", password = "root")
