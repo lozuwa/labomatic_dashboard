@@ -33,15 +33,36 @@
     </table>
   </div>
 	<h3>Images</h3>
+  
   <!-- <img src="/static/diagnosis/6729216/sample380_2017_12_01_13_18_34381.jpg" alt="Image" style="width:100%"> -->
-	{% for each in images %}
-		<div class="row">
-			<div class="card col-sm-3">
-        <img src="{{ each.path }}" alt="Avatar" style="width:100%">
-			  <div class="container">
-			    <h4><b>Parasite</b></h4> 
-			  </div>
-			</div>
-		</div>
+  
+  <!-- Iterate over rows -->
+	{% for image_row in image_rows %}
+    <div class="row">
+      <!-- Iterate over columns -->
+      {% for image_col in image_row %}
+        <div class="card col-sm-3">
+          <img src="{{ image_col.path }}" alt="Avatar" style="width:100%">
+          <div class="container">
+            <h4><b>Parasite</b></h4> 
+          </div>
+        </div>
+        <div class="col-sm-1"></div>
+      {% endfor %}
+    </div>
 	{% endfor %}
+
+  <!-- Iterate over missing cols -->
+  <div class="row">
+    {% for missing_col in missing_cols %}
+      <div class="card col-sm-3">
+        <img src="{{ missing_col.path }}" alt="Avatar" style="width:100%">
+        <div class="container">
+          <h4><b>Parasite</b></h4> 
+        </div>
+      </div>
+      <div class="col-sm-1"></div>
+    {% endfor %}
+  </div>
+
 {% endblock %}

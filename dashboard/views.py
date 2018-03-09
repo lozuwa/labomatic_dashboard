@@ -50,15 +50,33 @@ def index(request):
 			path_client = os.path.join("dashboard", "static", \
 															"diagnosis", client_id)
 			images = [{"path": os.path.join("static", "diagnosis", client_id, each)} \
-													for each in os.listdir(path_client) \
-													if os.path.isfile(os.path.join(path_client, each))]
-			print(images)
+												for each in os.listdir(path_client) \
+												if os.path.isfile(os.path.join(path_client, each))]
+			# Local variables
+			image_rows = []
+			image_col = []
+			# Append values to rows and cols
+			for index, image in enumerate(images, 1):
+				image_col.append(image)
+				# If there are 3 indexes
+				if index % 3 == 0:
+					image_rows.append(image_col)
+					image_col = []
+			# There might be missing cols that don't fit
+			# in a single row.
+			n = len(images) % 3
+			if n != 0:
+				missing_cols = images[-n:]
+			else:
+				missing_cols = []
 			# Add parameters to context hashmap
 			context = {"summary": summary,
-									"images": images}
+									"images": images,
+									"image_rows": image_rows,
+									"missing_cols": missing_cols}
 			return render(request,
-									"dashboard/show_client.html",
-									context)
+										"dashboard/show_client.html",
+										context)
 	else:
 		# Get folders from path
 		folders = os.listdir(CLIENTS_PATH)
@@ -82,8 +100,8 @@ def index(request):
 							for index, client in enumerate(list_clients)]
 		context = {"clients": clients}
 		return render(request,
-								"dashboard/clients_table.html",
-								context)
+									"dashboard/clients_table.html",
+									context)
 
 def refresh(request):
 	return HttpResponseRedirect("/")

@@ -48,3 +48,23 @@ def extract_ids(list_clients):
 		ids.append(client.property_client_id)
 	return ids
 
+def calculate_grid(n):
+	"""
+	Given n, calculate how many rows and cols
+	shold be computed to fit n in a constrained
+	matrix of 3 columns but M rows.
+	1 <= n <= 10000
+	Args:
+		n: An int that describes the size of n.
+	Returns:
+		rows, cols: Two ints that tell how many rows
+								and cols should be computed.
+	"""
+	# Columns
+	cols = n % 3
+	# Rows
+	rows = n // 3
+	# Return values
+	return rows, cols
+
+
