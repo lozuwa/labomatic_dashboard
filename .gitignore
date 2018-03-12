@@ -1,6 +1,7 @@
 # Secret files
 labomatic/settings.py
 dashboard/static/assets/frozen_inference_graph.pb
+dashboard/static/diagnosis/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
