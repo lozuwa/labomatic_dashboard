@@ -8,8 +8,8 @@ urlpatterns = [
   # Main
   path("", views.index, name="index"),
   path("<int:id>", views.index, name="index"),
-  path("refresh", views.refresh, name="refresh") 
-] 
+  path("refresh", views.refresh, name="refresh")
+]
 
 if settings.DEBUG:
 	# Static files

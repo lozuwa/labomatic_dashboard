@@ -88,7 +88,7 @@ def classify_files():
 	Args:
 		path: A string that contains the path to a preprocessed folder of images.
 	Returns:
-		None 
+		None
 	"""
 	file_path = os.path.join(os.getcwd(),
 													"dashboard/LoadObjectDetectionModel.py")

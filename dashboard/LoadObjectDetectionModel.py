@@ -66,7 +66,7 @@ class LoadObjectDetectionModel(object):
 		if imagePaths == None:
 			raise Exception("Image paths cannot be empty")
 		if thresholdScore == None:
-			thresholdScore = 0.8
+			thresholdScore = 0.1
 		# Local variables
 		results = {}
 		# Actual detection
